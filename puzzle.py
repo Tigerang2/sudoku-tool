@@ -12,6 +12,7 @@ class Cell:
 
         self.isSolved: bool = False
         self.digit: int = 0  # 0 if the digit is not yet solved
+        self.candidates: list[bool] = [True for _ in range(9)]
         self.options: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.sees: list[Cell] = []
 
@@ -34,6 +35,10 @@ class Cell:
 
     def __hash__(self):
         return hash((self.id, self.digit, hash(tuple(self.options))))
+
+    # @property
+    # def options(self):
+    #     return [i+1 for i, j in enumerate(self.candidates) if j]
 
     def add_see(self, see: Cell):
         if see != self:
