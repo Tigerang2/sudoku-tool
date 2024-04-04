@@ -12,6 +12,7 @@ class Cell:
 
         self.isSolved: bool = False
         self.digit: int = 0  # 0 if the digit is not yet solved
+        self.candidates: list[bool] = [True for _ in range(9)]
         self.options: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.sees: list[Cell] = []
 
@@ -34,6 +35,10 @@ class Cell:
 
     def __hash__(self):
         return hash((self.id, self.digit, hash(tuple(self.options))))
+
+    # @property
+    # def options(self):
+    #     return [i+1 for i,j in enumerate(options) if j]
 
     def add_see(self, see: Cell):
         if see != self:
@@ -123,12 +128,14 @@ class Puzzle:
         # mark the cell as solved
         self.board[row][col].isSolved = True
         self.board[row][col].digit = digit
-        self.board[row][col].options.clear()
+        self.board[row][col].options = [digit]
+        self.board[row][col].candidates = [i==digit-1 for i in range(9)]
 
         # remove the option from any cell
         for cell in self.board[row][col].sees:
             if digit in cell.options:
                 cell.options.remove(digit)
+                cell.candidates[digit-1] = False
 
     def print_board(self, large=True, outstream=sys.stdout):
 
@@ -180,7 +187,7 @@ class Puzzle:
                 for col in range(9):
                     cell = self.board[row][col]
 
-                    if len(cell.options) == 1:
+                    if len(cell.options) == 1 and not cell.isSolved:
                         pass_successful = True
                         _return = True
                         digit = cell.options[0]
@@ -210,7 +217,7 @@ class Puzzle:
                     for house in _houses[0]:
                         possibilities = []
                         for cell in house:
-                            if digit in cell.options:
+                            if not cell.isSolved and digit in cell.options:
                                 possibilities.append(cell)
 
                         if len(possibilities) == 1:
@@ -268,6 +275,7 @@ class Puzzle:
 
                         for c in elims:
                             c.options.remove(digit)
+                            c.candidates[digit-1] = False
 
         return _return
 
@@ -307,6 +315,7 @@ class Puzzle:
 
                                 for c in elims:
                                     c.options.remove(digit)
+                                    c.candidates[digit-1] = False
 
         return _return
 
@@ -373,6 +382,7 @@ class Puzzle:
                                     for d in elims:
                                         for c in elims[d]:
                                             c.options.remove(d)
+                                            c.candidates[d-1] = False
 
         return _return
 
@@ -442,6 +452,7 @@ class Puzzle:
 
                         for c in elims:
                             c.options.remove(Z)
+                            c.candidates[Z-1] = False
 
         return _return
 
@@ -482,4 +493,6 @@ if __name__ == "__main__":
     puzzle.import_board("010203040800000006000600100300000007001807900500000008009008000700000003020304050")
     puzzle.print_board(large=False)
     puzzle.solve_puzzle()
-    puzzle.print_board(large=False)
+    puzzle.print_board(large=True)
+    for c in puzzle.cells:
+        print(c.candidates[c.digit-1], c.options)
